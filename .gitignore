@@ -1,0 +1,16 @@
+# Virtual environment
+coral_env/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Dataset (do not upload images)
+dataset/
+
+# Model files
+*.h5
+*.pt
+*.pth
