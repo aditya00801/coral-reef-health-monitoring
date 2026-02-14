@@ -108,7 +108,7 @@ with tab2:
 
 with tab3:
 
-    st.subheader("📌 Project Synopsis")
+    st.subheader("📌 About the Project")
 
     st.write("""
     **Coral Reef Health Monitoring System** is a Deep Learning-based image 
@@ -154,18 +154,7 @@ with tab3:
     - ADITYA KUSHWAHA  
     - ADITYA KUMAR  
     - ANKIT KUMAR  
-    - AMAN SINGH  
-    """)
-
-    st.subheader("📅 Project Timeline")
-
-    st.markdown("""
-    **Phase 1:** Problem Identification & Research  
-    **Phase 2:** Dataset Collection & Preprocessing  
-    **Phase 3:** Model Training & Validation  
-    **Phase 4:** Model Optimization & Testing  
-    **Phase 5:** Web Deployment (Streamlit Cloud)  
-    **Phase 6:** Documentation & Final Submission  
+    - AMAN KUMAR SINGH  
     """)
 
     st.subheader("🚀 Future Enhancements")
@@ -178,4 +167,11 @@ with tab3:
     - Live monitoring dashboard with analytics  
     """)
 
+    st.warning("""
+    ⚠️ Note: The current model is under continuous optimization and performance 
+    improvement. Accuracy and efficiency metrics may be further enhanced in 
+    future updates as additional training data and tuning techniques are applied.
+    """)
+
     st.success("Developed as part of academic Minor Project submission.")
+
