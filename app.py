@@ -1,11 +1,21 @@
 import streamlit as st
 import numpy as np
 import cv2
+import os
+import gdown
 from tensorflow.keras.models import load_model
+
+MODEL_PATH = "coral_model.h5"
+FILE_ID = "1Cj8MPPBpAenbkKR_pk2adjWlLc3C2UIZ"
+
+# Download model if not present
+if not os.path.exists(MODEL_PATH):
+    url = f"https://drive.google.com/uc?id={FILE_ID}"
+    gdown.download(url, MODEL_PATH, quiet=False)
 
 @st.cache_resource
 def load_cnn_model():
-    return load_model("coral_model.h5")
+    return load_model(MODEL_PATH)
 
 model = load_cnn_model()
 
