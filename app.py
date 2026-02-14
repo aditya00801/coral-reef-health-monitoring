@@ -35,7 +35,7 @@ st.title("🌊 Coral Reef Health Monitoring System")
 # TABS
 # ----------------------------
 
-tab1, tab2 = st.tabs(["🔍 Prediction", "📊 Model Performance",  "ℹ️ About"])
+tab1, tab2, tab3 = st.tabs(["🔍 Prediction", "📊 Model Performance",  "ℹ️ About"])
 
 # ----------------------------
 # TAB 1 — PREDICTION
