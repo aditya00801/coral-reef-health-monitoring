@@ -1,8 +1,7 @@
 streamlit
 tensorflow
 numpy
-opencv-python-headless
-Pillow
-gdown
+opencv-python
 matplotlib
 seaborn
+gdown

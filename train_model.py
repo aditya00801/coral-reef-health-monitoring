@@ -28,7 +28,8 @@ val_data = val_datagen.flow_from_directory(
     'dataset/validation',
     target_size=(IMG_SIZE, IMG_SIZE),
     batch_size=BATCH_SIZE,
-    class_mode='binary'
+    class_mode='binary',
+    shuffle=False   #
 )
 
 # Load pretrained MobileNetV2
@@ -67,3 +68,25 @@ history = model.fit(
 
 # Save model
 model.save("coral_model_mobilenet.h5")
+
+from sklearn.metrics import confusion_matrix, classification_report
+import numpy as np
+
+# Reset validation generator (VERY IMPORTANT)
+val_data.reset()
+
+# True labels
+y_true = val_data.classes
+
+# Predictions
+y_pred = model.predict(val_data)
+y_pred = (y_pred > 0.5).astype(int)
+
+# Confusion Matrix
+cm = confusion_matrix(y_true, y_pred)
+print("Confusion Matrix:")
+print(cm)
+
+# Classification Report
+print("\nClassification Report:")
+print(classification_report(y_true, y_pred))
