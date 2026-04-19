@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import numpy as np
 from PIL import Image
 import tensorflow as tf
@@ -7,31 +7,39 @@ import os
 
 app = Flask(__name__)
 
+# -------------------------
+# MODEL CONFIG
+# -------------------------
 MODEL_PATH = "model.h5"
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1AMHjMG81IsNlcsFB_TaV4DwA0u8BpCsq"
 
-# ✅ Download model if not exists
+model = None
+
 def download_model():
     if not os.path.exists(MODEL_PATH):
         print("Downloading model...")
-        r = requests.get(MODEL_URL)
-        with open(MODEL_PATH, "wb") as f:
-            f.write(r.content)
+        with requests.get(MODEL_URL, stream=True) as r:
+            with open(MODEL_PATH, "wb") as f:
+                for chunk in r.iter_content(8192):
+                    if chunk:
+                        f.write(chunk)
         print("Model downloaded!")
-
-# ✅ Load model once
-model = None
 
 def get_model():
     global model
     if model is None:
         download_model()
+        print("Loading model...")
         model = tf.keras.models.load_model(MODEL_PATH)
+        print("Model loaded!")
     return model
 
+# -------------------------
+# ROUTES
+# -------------------------
 @app.route('/')
 def home():
-    return "Coral Reef API is running 🚀"
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -39,17 +47,22 @@ def predict():
         file = request.files['file']
         image = Image.open(file.stream).resize((224, 224))
 
-        img_array = np.array(image) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)
+        img = np.array(image) / 255.0
+        img = np.expand_dims(img, axis=0)
 
         model = get_model()
-        prediction = model.predict(img_array)
+        prediction = model.predict(img)[0][0]
 
-        result = int(prediction[0][0] > 0.5)
+        # probability
+        healthy_prob = float(prediction)
+        damaged_prob = 1 - healthy_prob
 
         return jsonify({
-            "prediction": result
+            "healthy": round(healthy_prob * 100, 2),
+            "damaged": round(damaged_prob * 100, 2),
+            "label": "Healthy Coral" if healthy_prob > 0.5 else "Damaged Coral"
         })
 
     except Exception as e:
+        print("Error:", e)
         return jsonify({"error": str(e)})

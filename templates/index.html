@@ -1,18 +1,1339 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Coral Health Monitoring</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ReefSense — Coral Reef Health Monitoring</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --deep:    #020d18;
+    --abyss:   #040f1f;
+    --ocean:   #062040;
+    --teal:    #06b6a2;
+    --aqua:    #0ef5d8;
+    --coral:   #ff6b5b;
+    --sand:    #f0c980;
+    --white:   #f0f8ff;
+    --mist:    rgba(240,248,255,0.06);
+    --glass:   rgba(6,182,162,0.08);
+    --border:  rgba(6,182,162,0.2);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--deep);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ── OCEAN CANVAS ─────────────────────────────── */
+  #ocean-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── NAV ──────────────────────────────────────── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 4rem;
+    background: rgba(2,13,24,0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    transition: padding .3s;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    text-decoration: none;
+  }
+
+  .logo-mark {
+    width: 36px; height: 36px;
+    position: relative;
+  }
+
+  .logo-mark svg { width: 100%; height: 100%; }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-text span { color: var(--teal); }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: rgba(240,248,255,0.65);
+    text-decoration: none;
+    font-size: .875rem;
+    font-weight: 400;
+    letter-spacing: .03em;
+    transition: color .2s;
+  }
+
+  .nav-links a:hover { color: var(--aqua); }
+
+  .nav-cta {
+    background: var(--teal);
+    color: var(--deep) !important;
+    font-weight: 500 !important;
+    padding: .55rem 1.4rem;
+    border-radius: 6px;
+    transition: background .2s, transform .15s !important;
+  }
+
+  .nav-cta:hover { background: var(--aqua); transform: translateY(-1px); }
+
+  /* ── HERO ─────────────────────────────────────── */
+  #hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8rem 2rem 5rem;
+    overflow: hidden;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: .4rem 1rem;
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 2rem;
+    animation: fadeUp .8s ease both;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; } 50% { opacity:.3; }
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    max-width: 900px;
+    animation: fadeUp .9s .15s ease both;
+  }
+
+  .hero-title .line-coral { color: var(--coral); font-style: italic; }
+  .hero-title .line-teal  { color: var(--teal); }
+
+  .hero-sub {
+    margin-top: 1.6rem;
+    font-size: 1.1rem;
+    color: rgba(240,248,255,0.55);
+    max-width: 560px;
+    line-height: 1.7;
+    animation: fadeUp .9s .3s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 3rem;
+    animation: fadeUp .9s .45s ease both;
+  }
+
+  .btn-primary {
+    background: var(--teal);
+    color: var(--deep);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: .95rem;
+    padding: .85rem 2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    transition: background .2s, transform .15s, box-shadow .2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--aqua);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(6,182,162,.35);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    padding: .85rem 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    transition: border-color .2s, background .2s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--teal);
+    background: var(--glass);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 4rem;
+    margin-top: 5rem;
+    animation: fadeUp .9s .6s ease both;
+  }
+
+  .stat { text-align: center; }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--aqua);
+  }
+
+  .stat-label {
+    font-size: .75rem;
+    color: rgba(240,248,255,.45);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-top: .25rem;
+  }
+
+  /* light ray effect */
+  .light-ray {
+    position: absolute;
+    top: -200px;
+    width: 2px;
+    height: 120vh;
+    background: linear-gradient(to bottom, transparent, rgba(6,182,162,.12), transparent);
+    transform-origin: top center;
+    animation: ray 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .light-ray:nth-child(1) { left: 20%; transform: rotate(-12deg); animation-delay: 0s; }
+  .light-ray:nth-child(2) { left: 40%; transform: rotate(-4deg); animation-delay: 1.5s; }
+  .light-ray:nth-child(3) { left: 60%; transform: rotate(4deg); animation-delay: 3s; }
+  .light-ray:nth-child(4) { left: 80%; transform: rotate(12deg); animation-delay: 4.5s; }
+
+  @keyframes ray {
+    0%,100% { opacity: .4; }
+    50%      { opacity: 1; }
+  }
+
+  /* ── SECTION SHARED ───────────────────────────── */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .container {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .section-sub {
+    margin-top: 1rem;
+    color: rgba(240,248,255,.5);
+    font-size: 1rem;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  /* ── HOW IT WORKS ─────────────────────────────── */
+  #how {
+    padding: 7rem 0;
+    background: linear-gradient(to bottom, transparent, rgba(6,32,64,.5), transparent);
+  }
+
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .step {
+    background: rgba(4,15,31,.85);
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: background .25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .step::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--teal), transparent);
+    opacity: 0;
+    transition: opacity .3s;
+  }
+
+  .step:hover { background: rgba(6,182,162,.07); }
+  .step:hover::after { opacity: 1; }
+
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    color: var(--teal);
+    letter-spacing: .15em;
+  }
+
+  .step-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .step-desc {
+    font-size: .875rem;
+    color: rgba(240,248,255,.5);
+    line-height: 1.65;
+  }
+
+  /* ── UPLOAD / DEMO ────────────────────────────── */
+  #demo {
+    padding: 7rem 0;
+  }
+
+  .demo-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .upload-card {
+    background: rgba(4,15,31,.9);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .upload-header {
+    background: linear-gradient(135deg, rgba(6,182,162,.15), rgba(6,32,64,.5));
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .upload-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: .4rem;
+  }
+
+  .upload-header p {
+    font-size: .875rem;
+    color: rgba(240,248,255,.45);
+  }
+
+  .upload-zone {
+    margin: 2rem;
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 3.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .25s, background .25s;
+  }
+
+  .upload-zone:hover {
+    border-color: var(--teal);
+    background: var(--glass);
+  }
+
+  .upload-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+  .upload-cta {
+    font-size: .95rem;
+    margin-bottom: .4rem;
+    color: var(--white);
+  }
+
+  .upload-hint {
+    font-size: .8rem;
+    color: rgba(240,248,255,.35);
+  }
+
+  .upload-actions {
+    padding: 0 2rem 2rem;
+    display: flex;
+    gap: .75rem;
+  }
+
+  .upload-btn {
+    flex: 1;
+    background: var(--teal);
+    color: var(--deep);
+    border: none;
+    border-radius: 10px;
+    padding: .85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+  }
+
+  .upload-btn:hover { background: var(--aqua); transform: translateY(-1px); }
+
+  .upload-btn.sec {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid var(--border);
+    transition: border-color .2s;
+  }
+
+  .upload-btn.sec:hover { border-color: var(--teal); }
+
+  /* result panel */
+  .result-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .result-card {
+    background: rgba(4,15,31,.9);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem 2rem;
+    transition: border-color .25s;
+  }
+
+  .result-card:hover { border-color: rgba(6,182,162,.4); }
+
+  .result-label {
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 1rem;
+  }
+
+  .result-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+  }
+
+  .tag-healthy {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    background: rgba(22,163,74,.2);
+    color: #4ade80;
+    border: 1px solid rgba(22,163,74,.3);
+    padding: .25rem .7rem;
+    border-radius: 100px;
+  }
+
+  .tag-damaged {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    background: rgba(220,38,38,.2);
+    color: #f87171;
+    border: 1px solid rgba(220,38,38,.3);
+    padding: .25rem .7rem;
+    border-radius: 100px;
+  }
+
+  .confidence-bar-wrap {
+    margin-top: 1rem;
+  }
+
+  .conf-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .45rem;
+    font-size: .82rem;
+    color: rgba(240,248,255,.6);
+  }
+
+  .bar-bg {
+    height: 7px;
+    background: rgba(255,255,255,.07);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 1.5s cubic-bezier(.22,1,.36,1);
+  }
+
+  .bar-green { background: linear-gradient(to right, #16a34a, #4ade80); }
+  .bar-red   { background: linear-gradient(to right, #dc2626, #f87171); }
+
+  .metrics-mini {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .75rem;
+    margin-top: .5rem;
+  }
+
+  .mini-stat {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .9rem;
+    text-align: center;
+  }
+
+  .mini-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--aqua);
+  }
+
+  .mini-key {
+    font-size: .7rem;
+    color: rgba(240,248,255,.4);
+    margin-top: .2rem;
+  }
+
+  /* ── FEATURES ─────────────────────────────────── */
+  #features {
+    padding: 7rem 0;
+    background: linear-gradient(to bottom, transparent, rgba(6,32,64,.4), transparent);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .feat-card {
+    background: rgba(4,15,31,.85);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    transition: border-color .25s, transform .25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--teal), transparent);
+    opacity: 0;
+    transition: opacity .3s;
+  }
+
+  .feat-card:hover { border-color: rgba(6,182,162,.35); transform: translateY(-4px); }
+  .feat-card:hover::before { opacity: 1; }
+
+  .feat-icon-wrap {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+  }
+
+  .feat-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .feat-desc {
+    font-size: .875rem;
+    color: rgba(240,248,255,.48);
+    line-height: 1.65;
+  }
+
+  /* ── TEAM ─────────────────────────────────────── */
+  #team {
+    padding: 7rem 0;
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 3rem;
+  }
+
+  .member-card {
+    background: rgba(4,15,31,.9);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: border-color .25s, transform .25s;
+  }
+
+  .member-card:hover { border-color: rgba(6,182,162,.4); transform: translateY(-3px); }
+
+  .avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ocean), var(--teal));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 auto 1.1rem;
+    border: 2px solid var(--border);
+  }
+
+  .member-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: .25rem;
+  }
+
+  .member-id {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    color: var(--teal);
+    letter-spacing: .1em;
+  }
+
+  .guide-card {
+    background: linear-gradient(135deg, rgba(6,182,162,.12), rgba(6,32,64,.6));
+    border: 1px solid rgba(6,182,162,.3);
+    border-radius: 16px;
+    padding: 2rem 3rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .guide-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--aqua));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--deep);
+    flex-shrink: 0;
+  }
+
+  .guide-info { flex: 1; }
+
+  .guide-role {
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: .4rem;
+  }
+
+  .guide-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: .3rem;
+  }
+
+  .guide-dept {
+    font-size: .875rem;
+    color: rgba(240,248,255,.5);
+  }
+
+  /* ── TECH STACK ───────────────────────────────── */
+  #tech {
+    padding: 5rem 0;
+    background: linear-gradient(to bottom, transparent, rgba(4,9,18,.7));
+  }
+
+  .tech-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    justify-content: center;
+  }
+
+  .tech-pill {
+    background: rgba(4,15,31,.9);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: .55rem 1.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: .8rem;
+    color: rgba(240,248,255,.7);
+    transition: border-color .2s, color .2s, background .2s;
+  }
+
+  .tech-pill:hover {
+    border-color: var(--teal);
+    color: var(--aqua);
+    background: var(--glass);
+  }
+
+  /* ── FOOTER ───────────────────────────────────── */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 3rem 0;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .footer-brand span { color: var(--teal); }
+
+  .footer-copy {
+    font-size: .8rem;
+    color: rgba(240,248,255,.3);
+  }
+
+  /* ── ANIMATIONS ───────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── DIVIDER ──────────────────────────────────── */
+  .wave-divider {
+    width: 100%;
+    line-height: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .wave-divider svg { display: block; }
+
+  /* ── SCROLLBAR ────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--deep); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--teal); }
+</style>
 </head>
 <body>
-    <h1>🌊 Coral Reef Health Monitoring</h1>
 
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">Predict</button>
-    </form>
+<!-- Ocean canvas background -->
+<canvas id="ocean-canvas"></canvas>
 
-    {% if result %}
-        <h2>Result: {{ result }}</h2>
-    {% endif %}
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="logo-mark">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="17" stroke="#06b6a2" stroke-width="1.5"/>
+        <path d="M6 22 Q10 16 14 20 Q18 24 22 18 Q26 12 30 16" stroke="#0ef5d8" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <circle cx="10" cy="20" r="2" fill="#ff6b5b" opacity=".7"/>
+        <circle cx="18" cy="19" r="2.5" fill="#06b6a2"/>
+        <circle cx="26" cy="16" r="1.8" fill="#f0c980" opacity=".8"/>
+      </svg>
+    </div>
+    <span class="logo-text">Reef<span>Sense</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#demo">Try Demo</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#demo" class="nav-cta">Launch App →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="light-ray"></div>
+  <div class="light-ray"></div>
+  <div class="light-ray"></div>
+  <div class="light-ray"></div>
+
+  <div class="hero-badge">AI-Powered Marine Conservation</div>
+
+  <h1 class="hero-title">
+    Protecting <span class="line-coral">Coral Reefs</span><br/>
+    with <span class="line-teal">Deep Learning</span>
+  </h1>
+
+  <p class="hero-sub">
+    ReefSense uses MobileNet CNN to automatically classify coral reef health from underwater images — instantly, accurately, at scale.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#demo" class="btn-primary">
+      <span>🪸</span> Analyze a Reef Image
+    </a>
+    <a href="#how" class="btn-secondary">
+      <span>▷</span> See How It Works
+    </a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-value">98%</div>
+      <div class="stat-label">Accuracy</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">0.2s</div>
+      <div class="stat-label">Inference Time</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">985+</div>
+      <div class="stat-label">Images Tested</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">2</div>
+      <div class="stat-label">Classes Detected</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="eyebrow">// pipeline</span>
+      <h2 class="section-title">How ReefSense Works</h2>
+      <p class="section-sub">Four intelligent steps from raw image to actionable reef health insights.</p>
+    </div>
+    <div class="steps-grid reveal">
+      <div class="step">
+        <span class="step-num">01</span>
+        <span class="step-icon">📷</span>
+        <div class="step-title">Upload Image</div>
+        <div class="step-desc">Provide an underwater coral reef photograph. Supports JPEG, PNG formats.</div>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <span class="step-icon">⚙️</span>
+        <div class="step-title">Preprocess</div>
+        <div class="step-desc">Image is resized to 224×224 and normalized for optimal model input.</div>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <span class="step-icon">🧠</span>
+        <div class="step-title">MobileNet CNN</div>
+        <div class="step-desc">Pre-trained MobileNet with fine-tuned coral classification head runs inference.</div>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <span class="step-icon">📊</span>
+        <div class="step-title">Get Results</div>
+        <div class="step-desc">Receive classification — Healthy or Damaged — with confidence scores.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO / UPLOAD -->
+<section id="demo">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="eyebrow">// live demo</span>
+      <h2 class="section-title">Analyze Your Reef Image</h2>
+      <p class="section-sub">Upload an underwater coral photograph and get an instant health classification.</p>
+    </div>
+    <div class="demo-layout">
+      <!-- Upload card -->
+      <div class="upload-card reveal">
+        <div class="upload-header">
+          <h3>Upload Image</h3>
+          <p>Supported: JPG, PNG · Max 10 MB</p>
+        </div>
+        <div class="upload-zone" id="dropzone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFile(this)"/>
+          <span class="upload-icon" id="upload-emoji">🪸</span>
+          <div class="upload-cta" id="upload-cta-text">Drop image here or <u style="color:var(--teal);cursor:pointer">browse</u></div>
+          <div class="upload-hint">Coral reef underwater photograph</div>
+        </div>
+        <div class="upload-actions">
+          <button class="upload-btn" onclick="analyzeImage()">🔬 Analyze Now</button>
+          <button class="upload-btn sec" onclick="resetDemo()">↺ Reset</button>
+        </div>
+      </div>
+
+      <!-- Result panel -->
+      <div class="result-panel">
+        <div class="result-card reveal">
+          <div class="result-label">// classification result</div>
+          <div class="result-big" id="result-label">
+            <span id="result-text">Awaiting image...</span>
+            <span id="result-tag"></span>
+          </div>
+          <div class="confidence-bar-wrap" id="conf-wrap" style="display:none">
+            <div class="conf-row" style="margin-top:1.2rem">
+              <span>🟢 Healthy</span><span id="pct-healthy">—</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill bar-green" id="bar-healthy" style="width:0%"></div></div>
+            <div class="conf-row" style="margin-top:.9rem">
+              <span>🔴 Damaged</span><span id="pct-damaged">—</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill bar-red" id="bar-damaged" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="result-card reveal" style="--delay:.15s">
+          <div class="result-label">// model performance</div>
+          <div class="metrics-mini">
+            <div class="mini-stat">
+              <div class="mini-val">98%</div>
+              <div class="mini-key">Accuracy</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-val">98%</div>
+              <div class="mini-key">Precision</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-val">98%</div>
+              <div class="mini-key">F1-Score</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-card reveal" style="--delay:.3s">
+          <div class="result-label">// model details</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:.85rem;color:rgba(240,248,255,.55);">
+            <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">BASE MODEL</span>&nbsp;&nbsp;MobileNet (ImageNet)</div>
+            <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">FRAMEWORK</span>&nbsp;&nbsp;TensorFlow / Keras</div>
+            <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">INPUT SIZE</span>&nbsp;&nbsp;224 × 224 × 3</div>
+            <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">CLASSES</span>&emsp;&emsp;Healthy · Damaged</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="eyebrow">// capabilities</span>
+      <h2 class="section-title">Why ReefSense?</h2>
+      <p class="section-sub">Purpose-built for marine researchers and conservationists.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap">🎯</div>
+        <div class="feat-title">98% Accuracy</div>
+        <div class="feat-desc">Validated on 985 test images with balanced precision and recall — far beyond manual assessment methods.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap">⚡</div>
+        <div class="feat-title">Lightning Fast</div>
+        <div class="feat-desc">MobileNet's lightweight architecture delivers sub-second inference. Process entire datasets in minutes.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap">🤖</div>
+        <div class="feat-title">Fully Automated</div>
+        <div class="feat-desc">No manual scoring required. The system works continuously with zero expert bias in results.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap">📱</div>
+        <div class="feat-title">Mobile-Ready</div>
+        <div class="feat-desc">Optimized MobileNet architecture suitable for edge devices, enabling field use by researchers.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap">📈</div>
+        <div class="feat-title">Scalable</div>
+        <div class="feat-desc">From a single image to millions — the architecture scales horizontally to cover global reef systems.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon-wrap">🌊</div>
+        <div class="feat-title">Transfer Learning</div>
+        <div class="feat-desc">Pre-trained on ImageNet and fine-tuned on coral data, achieving high accuracy even with limited training samples.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="eyebrow">// the team</span>
+      <h2 class="section-title">Built by</h2>
+      <p class="section-sub">Final Year B.Tech — Department of Computer Science & Engineering, 2024–25</p>
+    </div>
+
+    <div class="team-grid">
+      <div class="member-card reveal">
+        <div class="avatar">AK</div>
+        <div class="member-name">Aditya Kushwaha</div>
+        <div class="member-id">1230439020</div>
+      </div>
+      <div class="member-card reveal">
+        <div class="avatar">AK</div>
+        <div class="member-name">Aditya Kumar</div>
+        <div class="member-id">1230439019</div>
+      </div>
+      <div class="member-card reveal">
+        <div class="avatar">AK</div>
+        <div class="member-name">Ankit Kumar</div>
+        <div class="member-id">1230439055</div>
+      </div>
+      <div class="member-card reveal">
+        <div class="avatar">AS</div>
+        <div class="member-name">Aman Kumar Singh</div>
+        <div class="member-id">1230439040</div>
+      </div>
+    </div>
+
+    <div class="guide-card reveal">
+      <div class="guide-avatar">FK</div>
+      <div class="guide-info">
+        <div class="guide-role">// project guide</div>
+        <div class="guide-name">Mr. Faraz Khan</div>
+        <div class="guide-dept">Assistant Professor · Department of Computer Science & Engineering</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="eyebrow">// built with</span>
+      <h2 class="section-title">Technology Stack</h2>
+    </div>
+    <div class="tech-pills">
+      <span class="tech-pill">Python 3.x</span>
+      <span class="tech-pill">TensorFlow</span>
+      <span class="tech-pill">Keras</span>
+      <span class="tech-pill">MobileNet CNN</span>
+      <span class="tech-pill">Transfer Learning</span>
+      <span class="tech-pill">OpenCV</span>
+      <span class="tech-pill">NumPy</span>
+      <span class="tech-pill">Streamlit</span>
+      <span class="tech-pill">ImageNet</span>
+      <span class="tech-pill">PyCharm</span>
+      <span class="tech-pill">VS Code</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">Reef<span>Sense</span></div>
+      <div class="footer-copy">© 2025 ReefSense · Coral Reef Health Monitoring · Dept. of CSE</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── OCEAN CANVAS ──────────────────────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('ocean-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.r = Math.random() * 2.2 + .3;
+      this.speed = Math.random() * .35 + .08;
+      this.drift = (Math.random() - .5) * .3;
+      this.opacity = Math.random() * .5 + .05;
+      this.pulse = Math.random() * Math.PI * 2;
+      this.pulseSpeed = Math.random() * .02 + .005;
+      this.hue = Math.random() > .6 ? 170 : (Math.random() > .5 ? 0 : 45);
+    }
+    update() {
+      this.y -= this.speed;
+      this.x += this.drift;
+      this.pulse += this.pulseSpeed;
+      if (this.y < -10) this.reset(), this.y = H + 5;
+    }
+    draw() {
+      const op = this.opacity * (.7 + .3 * Math.sin(this.pulse));
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = this.hue === 170
+        ? `rgba(6,182,162,${op})`
+        : this.hue === 0
+          ? `rgba(255,107,91,${op * .6})`
+          : `rgba(240,201,128,${op * .5})`;
+      ctx.fill();
+    }
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({ length: 180 }, () => new Particle());
+  }
+
+  function draw() {
+    // deep gradient background
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0,   '#020d18');
+    grad.addColorStop(.45, '#031428');
+    grad.addColorStop(1,   '#030b14');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // subtle mesh blobs
+    [
+      { x: W*.15, y: H*.3,  r: 280, c: 'rgba(6,182,162,0.04)' },
+      { x: W*.8,  y: H*.6,  r: 220, c: 'rgba(6,32,64,0.25)'   },
+      { x: W*.5,  y: H*.85, r: 340, c: 'rgba(6,182,162,0.03)' },
+    ].forEach(b => {
+      const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      g.addColorStop(0, b.c);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    });
+
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  init();
+  draw();
+})();
+
+// ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
+const io = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      e.target.style.transitionDelay = (i % 4) * 0.1 + 's';
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ── DROP ZONE ─────────────────────────────────────────────────────────────────
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.style.borderColor = 'var(--teal)'; });
+dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = 'var(--border)'; });
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.style.borderColor = 'var(--border)';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadPreview(file);
+});
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (file) loadPreview(file);
+}
+
+function loadPreview(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('upload-emoji').style.display = 'none';
+    const img = document.createElement('img');
+    img.src = ev.target.result;
+    img.style.cssText = 'max-width:100%;max-height:140px;border-radius:10px;margin-bottom:12px;object-fit:cover;';
+    const existImg = dropzone.querySelector('img');
+    if (existImg) existImg.remove();
+    dropzone.insertBefore(img, dropzone.firstChild);
+    document.getElementById('upload-cta-text').textContent = '✓ Image loaded — click Analyze Now';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeImage() {
+  const fileInput = document.getElementById('file-input');
+
+  if (!fileInput.files.length) {
+    alert("Please upload an image first");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+
+  const btn = document.querySelector('.upload-btn:first-child');
+  btn.textContent = '⏳ Analyzing...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/predict', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+
+    btn.textContent = '🔬 Analyze Now';
+    btn.disabled = false;
+
+    const healthy = data.healthy;
+    const damaged = data.damaged;
+
+    document.getElementById('result-text').textContent = data.label;
+
+    document.getElementById('result-tag').innerHTML =
+      healthy > damaged
+        ? '<span class="tag-healthy">✓ Healthy</span>'
+        : '<span class="tag-damaged">⚠ Damaged</span>';
+
+    document.getElementById('conf-wrap').style.display = 'block';
+
+    document.getElementById('pct-healthy').textContent = healthy + '%';
+    document.getElementById('pct-damaged').textContent = damaged + '%';
+
+    document.getElementById('bar-healthy').style.width = healthy + '%';
+    document.getElementById('bar-damaged').style.width = damaged + '%';
+
+  } catch (err) {
+    alert("Error: " + err);
+    btn.textContent = '🔬 Analyze Now';
+    btn.disabled = false;
+  }
+}
+
+function resetDemo() {
+  document.getElementById('upload-emoji').style.display = '';
+  document.getElementById('upload-cta-text').innerHTML = 'Drop image here or <u style="color:var(--teal);cursor:pointer">browse</u>';
+  const img = document.querySelector('.upload-zone img');
+  if (img) img.remove();
+  document.getElementById('result-text').textContent = 'Awaiting image...';
+  document.getElementById('result-tag').innerHTML = '';
+  document.getElementById('conf-wrap').style.display = 'none';
+  document.getElementById('bar-healthy').style.width = '0%';
+  document.getElementById('bar-damaged').style.width = '0%';
+  document.getElementById('file-input').value = '';
+}
+</script>
 </body>
 </html>
