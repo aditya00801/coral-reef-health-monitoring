@@ -945,7 +945,7 @@
         <span class="step-num">04</span>
         <span class="step-icon">📊</span>
         <div class="step-title">Get Results</div>
-        <div class="step-desc">Receive classification — Healthy or Damaged — with confidence scores.</div>
+        <div class="step-desc">Receive classification — Healthy or Bleached — with confidence scores.</div>
       </div>
     </div>
   </div>
@@ -1020,7 +1020,7 @@
             <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">BASE MODEL</span>&nbsp;&nbsp;MobileNet (ImageNet)</div>
             <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">FRAMEWORK</span>&nbsp;&nbsp;TensorFlow / Keras</div>
             <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">INPUT SIZE</span>&nbsp;&nbsp;224 × 224 × 3</div>
-            <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">CLASSES</span>&emsp;&emsp;Healthy · Damaged</div>
+            <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">CLASSES</span>&emsp;&emsp;Healthy · Bleached</div>
           </div>
         </div>
       </div>
@@ -1305,7 +1305,7 @@ async function analyzeImage() {
     document.getElementById('result-tag').innerHTML =
       healthy > damaged
         ? '<span class="tag-healthy">✓ Healthy</span>'
-        : '<span class="tag-damaged">⚠ Damaged</span>';
+        : '<span class="tag-damaged">⚠ Bleached</span>';
 
     document.getElementById('conf-wrap').style.display = 'block';
 
