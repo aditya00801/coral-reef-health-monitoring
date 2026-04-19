@@ -51,18 +51,18 @@ def predict():
         img = np.expand_dims(img, axis=0)
 
         model = get_model()
-        prediction = model.predict(img)[0][0]
+        p = float(model.predict(img)[0][0])  # probability of class-1
 
-        # probability
-        healthy_prob = float(prediction)
-        damaged_prob = 1 - healthy_prob
+        # 👉 Map classes:
+        # assume p = probability of "Healthy"
+        healthy = p * 100
+        bleached = (1 - p) * 100
 
         return jsonify({
-            "healthy": round(healthy_prob * 100, 2),
-            "damaged": round(damaged_prob * 100, 2),
-            "label": "Healthy Coral" if healthy_prob > 0.5 else "Damaged Coral"
+            "healthy": round(healthy, 2),
+            "bleached": round(bleached, 2),
+            "label": "Healthy Coral" if healthy > bleached else "Bleached Coral"
         })
 
     except Exception as e:
-        print("Error:", e)
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 500

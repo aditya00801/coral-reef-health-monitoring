@@ -992,7 +992,7 @@
             </div>
             <div class="bar-bg"><div class="bar-fill bar-green" id="bar-healthy" style="width:0%"></div></div>
             <div class="conf-row" style="margin-top:.9rem">
-              <span>🔴 Damaged</span><span id="pct-damaged">—</span>
+              <span>🔴 Bleached</span><span id="pct-damaged">—</span>
             </div>
             <div class="bar-bg"><div class="bar-fill bar-red" id="bar-damaged" style="width:0%"></div></div>
           </div>
@@ -1298,7 +1298,7 @@ async function analyzeImage() {
     btn.disabled = false;
 
     const healthy = data.healthy;
-    const damaged = data.damaged;
+    const damaged = data.bleached;
 
     document.getElementById('result-text').textContent = data.label;
 
