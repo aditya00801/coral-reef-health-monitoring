@@ -1,8 +1,6 @@
 streamlit
-tensorflow-cpu
-numpy
+tensorflow==2.12.0
+numpy==1.23.5
 pillow
 gdown
 opencv-python-headless
-matplotlib
-reportlab
