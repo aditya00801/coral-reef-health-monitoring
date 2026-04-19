@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: coral-app
-    runtime: python
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.10.13
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
