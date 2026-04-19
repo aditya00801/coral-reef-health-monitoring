@@ -1,63 +1,55 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, jsonify
 import numpy as np
-from tensorflow.keras.models import load_model
 from PIL import Image
+import tensorflow as tf
+import requests
 import os
-import gdown
 
 app = Flask(__name__)
 
-# ======================
-# MODEL CONFIG
-# ======================
-FILE_ID = "1AMHjMG81IsNlcsFB_TaV4DwA0u8BpCsq"
-MODEL_PATH = "model.keras"
+MODEL_PATH = "model.h5"
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1AMHjMG81IsNlcsFB_TaV4DwA0u8BpCsq"
 
-IMG_SIZE = 224
-CLASS_NAMES = ["Bleached Coral", "Healthy Coral"]
-
-# ======================
-# DOWNLOAD MODEL
-# ======================
+# ✅ Download model if not exists
 def download_model():
     if not os.path.exists(MODEL_PATH):
-        url = f"https://drive.google.com/uc?id={FILE_ID}"
-        gdown.download(url, MODEL_PATH, quiet=False)
+        print("Downloading model...")
+        r = requests.get(MODEL_URL)
+        with open(MODEL_PATH, "wb") as f:
+            f.write(r.content)
+        print("Model downloaded!")
 
-download_model()
-model = load_model(MODEL_PATH)
+# ✅ Load model once
+model = None
 
-# ======================
-# PREPROCESS
-# ======================
-def preprocess(img):
-    img = img.resize((IMG_SIZE, IMG_SIZE))
-    img = np.array(img) / 255.0
-    return np.expand_dims(img, axis=0)
+def get_model():
+    global model
+    if model is None:
+        download_model()
+        model = tf.keras.models.load_model(MODEL_PATH)
+    return model
 
-# ======================
-# ROUTES
-# ======================
-@app.route("/", methods=["GET", "POST"])
+@app.route('/')
 def home():
-    result = None
+    return "Coral Reef API is running 🚀"
 
-    if request.method == "POST":
-        file = request.files["file"]
-        img = Image.open(file)
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        file = request.files['file']
+        image = Image.open(file.stream).resize((224, 224))
 
-        x = preprocess(img)
-        pred = model.predict(x)
+        img_array = np.array(image) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
 
-        label = CLASS_NAMES[np.argmax(pred)]
-        confidence = float(np.max(pred) * 100)
+        model = get_model()
+        prediction = model.predict(img_array)
 
-        result = f"{label} ({confidence:.2f}%)"
+        result = int(prediction[0][0] > 0.5)
 
-    return render_template("index.html", result=result)
+        return jsonify({
+            "prediction": result
+        })
 
-# ======================
-# RUN
-# ======================
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    except Exception as e:
+        return jsonify({"error": str(e)})
