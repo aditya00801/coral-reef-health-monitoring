@@ -1023,6 +1023,10 @@
             <div><span style="color:var(--teal);font-family:'DM Mono',monospace;font-size:.72rem">CLASSES</span>&emsp;&emsp;Healthy · Bleached</div>
           </div>
         </div>
+        <div class="result-card reveal" style="--delay:.45s">
+          <div class="result-label">// prediction history</div>
+          <div id="history-list" style="max-height:200px; overflow:auto;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1315,12 +1319,40 @@ async function analyzeImage() {
     document.getElementById('bar-healthy').style.width = healthy + '%';
     document.getElementById('bar-damaged').style.width = damaged + '%';
 
+    fetch('/history')
+      .then(res => res.json())
+      .then(data => updateHistoryUI(data));
+
   } catch (err) {
     alert("Error: " + err);
     btn.textContent = '🔬 Analyze Now';
     btn.disabled = false;
   }
 }
+
+function updateHistoryUI(data) {
+  const container = document.getElementById('history-list');
+  container.innerHTML = '';
+
+  data.forEach(item => {
+    const div = document.createElement('div');
+    div.style.cssText = `
+      padding:10px;
+      border-bottom:1px solid rgba(255,255,255,0.1);
+      font-size:14px;
+    `;
+    div.innerHTML = `
+      <b>${item.label}</b><br>
+      🟢 ${item.healthy}% | 🔴 ${item.bleached}%
+    `;
+    container.appendChild(div);
+  });
+}
+
+// Load history on page open
+fetch('/history')
+  .then(res => res.json())
+  .then(data => updateHistoryUI(data));
 
 function resetDemo() {
   document.getElementById('upload-emoji').style.display = '';
