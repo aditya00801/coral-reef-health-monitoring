@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coral Health Monitor</title>
+</head>
+<body>
+    <h1>Coral Reef Health Detection</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if result %}
+        <h2>Prediction: {{ result.label }}</h2>
+        <h3>Confidence: {{ result.confidence }}%</h3>
+    {% endif %}
+</body>
+</html>
